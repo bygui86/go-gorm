@@ -8,10 +8,14 @@ import (
 	"github.com/bygui86/go-gorm/model"
 	"gopkg.in/logex.v1"
 	"gorm.io/gorm"
+	"strings"
 )
 
 func NewDbInterface() (*DbInterfaceImpl, error) {
-	cfg := loadConfig()
+	cfg, err := loadConfig()
+	if err != nil {
+		return nil, err
+	}
 
 	return &DbInterfaceImpl{
 		cfg: cfg,
@@ -23,11 +27,11 @@ func (d *DbInterfaceImpl) OpenConnection() error {
 	var err error
 	switch d.cfg.dbType {
 	case sqliteDb:
-		db, err = sqlite.OpenSqliteConnection()
+		db, err = sqlite.OpenSqliteConnection(d.cfg.dbName)
 	case postgresDb:
-		db, err = postgres.OpenPostgresConnection()
+		db, err = postgres.OpenPostgresConnection(d.cfg.dbName)
 	case mysqlDb:
-		db, err = mysql.OpenMysqlConnection()
+		db, err = mysql.OpenMysqlConnection(d.cfg.dbName)
 	default:
 		err = fmt.Errorf("%s db type not supported", d.cfg.dbType)
 	}
@@ -44,12 +48,31 @@ func (d *DbInterfaceImpl) OpenConnection() error {
 func (d *DbInterfaceImpl) InitSchema() error {
 	logex.Info("Initialize schema")
 
-	err := d.db.AutoMigrate(
+	switch d.cfg.dbType {
+	case postgresDb:
+		newErr := d.db.Exec(fmt.Sprintf("CREATE DATABASE %s", d.cfg.dbName)).Error
+		if newErr != nil {
+			if !strings.Contains(newErr.Error(), fmt.Sprintf("database \"%s\" already exists", d.cfg.dbName)) {
+				return newErr
+			}
+		}
+	case mysqlDb:
+		newErr := d.db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s;", d.cfg.dbName)).Error
+		if newErr != nil {
+			return newErr
+		}
+		useErr := d.db.Exec(fmt.Sprintf("USE %s;", d.cfg.dbName)).Error
+		if useErr != nil {
+			return useErr
+		}
+	}
+
+	migErr := d.db.AutoMigrate(
 		&model.Product{},
 		&model.Producer{},
 	)
-	if err != nil {
-		return err
+	if migErr != nil {
+		return migErr
 	}
 
 	return nil

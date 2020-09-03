@@ -5,6 +5,7 @@ import (
 	"gopkg.in/logex.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"strings"
 )
 
 const (
@@ -30,8 +31,11 @@ func main() {
 		NOTES:
 			- We are using pgx as postgres’s database/sql driver, it enables prepared statement cache by default
 	*/
-	dsn := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s %s",
-		username, password, host, port, dbName, params)
+	dsn := fmt.Sprintf("user=%s password=%s host=%s port=%d %s",
+		username, password, host, port, params)
+	// if the database already exists
+	//dsn := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s %s",
+	//	username, password, host, port, dbName, params)
 
 	// Open connection
 	logex.Infof("Open connection to dsn %s", dsn)
@@ -43,11 +47,20 @@ func main() {
 		panic("open failed")
 	}
 
-	// Migrate the schema
-	logex.Info("Migrate schema")
+	// Create DB
+	logex.Info("Create database")
+	dbErr := db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbName)).Error
+	if dbErr != nil {
+		if !strings.Contains(dbErr.Error(), fmt.Sprintf("database \"%s\" already exists", dbName)) {
+			panic("database creation failed")
+		}
+	}
+
+	// Initialize schema
+	logex.Info("Init schema")
 	migrateErr := db.AutoMigrate(&Product{})
 	if migrateErr != nil {
-		panic("automigrate failed")
+		panic("schema initialization failed")
 	}
 
 	// Create

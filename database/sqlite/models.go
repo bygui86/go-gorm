@@ -13,5 +13,4 @@ func (s storageType) string() string {
 
 type internalConfig struct {
 	storageType storageType
-	filename    string
 }

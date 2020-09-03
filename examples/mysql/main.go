@@ -35,8 +35,11 @@ func main() {
 			- To fully support UTF-8 encoding, you need to change charset=utf8 to charset=utf8mb4.
 			  For a detailed explanation see https://mathiasbynens.be/notes/mysql-utf8mb4
 	*/
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
-		username, password, host, port, dbName, params)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?%s",
+		username, password, host, port, params)
+	// if the database already exists
+	//dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s",
+	//	username, password, host, port, dbName, params)
 
 	// Open connection
 	logex.Infof("Open connection to dsn %s", dsn)
@@ -48,11 +51,22 @@ func main() {
 		panic("open failed")
 	}
 
-	// Migrate the schema
-	logex.Info("Migrate schema")
+	// Create DB
+	logex.Info("Create database")
+	newErr := db.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s;", dbName)).Error
+	if newErr != nil {
+		panic("database creation failed")
+	}
+	useErr := db.Exec(fmt.Sprintf("USE %s;", dbName)).Error
+	if useErr != nil {
+		panic("database activation failed")
+	}
+
+	// Initialize schema
+	logex.Info("Init schema")
 	migrateErr := db.AutoMigrate(&Product{})
 	if migrateErr != nil {
-		panic("automigrate failed")
+		panic("schema initialization failed")
 	}
 
 	// Create

@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	dsnFormat = "%s:%s@tcp(%s:%d)/%s?%s"
+	dsnFormat = "%s:%s@tcp(%s:%d)/?%s"
+	// if the database already exists
+	//dsnFormat = "%s:%s@tcp(%s:%d)/%s?%s"
 )
 
-func OpenMysqlConnection() (*gorm.DB, error) {
+func OpenMysqlConnection(dbName string) (*gorm.DB, error) {
 	cfg, cfgErr := loadConfig()
 	if cfgErr != nil {
 		return nil, cfgErr
 	}
 
 	return gorm.Open(
-		mysql.Open(buildDsn(cfg)),
+		mysql.Open(buildDsn(cfg, dbName)),
 		&gorm.Config{},
 	)
 }
@@ -33,7 +35,10 @@ func OpenMysqlConnection() (*gorm.DB, error) {
 		- To fully support UTF-8 encoding, you need to change charset=utf8 to charset=utf8mb4.
 		  For a detailed explanation see https://mathiasbynens.be/notes/mysql-utf8mb4
 */
-func buildDsn(cfg *internalConfig) string {
+func buildDsn(cfg *internalConfig, dbName string) string {
 	return fmt.Sprintf(dsnFormat,
-		cfg.username, cfg.password, cfg.host, cfg.port, cfg.dbName, cfg.params)
+		cfg.username, cfg.password, cfg.host, cfg.port, cfg.params)
+	// if the database already exists
+	//return fmt.Sprintf(dsnFormat,
+	//	cfg.username, cfg.password, cfg.host, cfg.port, dbName, cfg.params)
 }

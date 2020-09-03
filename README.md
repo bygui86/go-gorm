@@ -8,11 +8,11 @@ Sample project to explore gorm Golang library for SQL
 - [ ] simple example
     - [x] sqlite
     - [ ] mysql
-    - [ ] postgres
+    - [x] postgres
 - [ ] relation example
     - [x] sqlite
     - [ ] mysql
-    - [ ] postgres
+    - [x] postgres
 - [x] transaction error handling
 - [ ] expose rest api
 - [ ] prometheus metrics

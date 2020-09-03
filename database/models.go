@@ -23,6 +23,7 @@ type DbInterfaceImpl struct {
 
 type config struct {
 	dbType dbType
+	dbName string
 }
 
 const (

@@ -11,14 +11,11 @@ const (
 	inMemoryDsn   = "file::memory:?cache=shared"
 )
 
-func OpenSqliteConnection() (*gorm.DB, error) {
-	cfg, cfgErr := loadConfig()
-	if cfgErr != nil {
-		return nil, cfgErr
-	}
+func OpenSqliteConnection(dbName string) (*gorm.DB, error) {
+	cfg := loadConfig()
 
 	return gorm.Open(
-		sqlite.Open(buildDsn(cfg)),
+		sqlite.Open(buildDsn(cfg, dbName)),
 		&gorm.Config{},
 	)
 }
@@ -31,10 +28,10 @@ func OpenSqliteConnection() (*gorm.DB, error) {
 		  This will tell SQLite to use a temporary database in system memory.
 		  See https://www.sqlite.org/inmemorydb.html
 */
-func buildDsn(sqliteCfg *internalConfig) string {
+func buildDsn(sqliteCfg *internalConfig, dbName string) string {
 	switch sqliteCfg.storageType {
 	case fileStorage:
-		return fmt.Sprintf(fileDsnFormat, sqliteCfg.filename)
+		return fmt.Sprintf(fileDsnFormat, dbName)
 	case inMemoryStorage:
 		return inMemoryDsn
 	default:
