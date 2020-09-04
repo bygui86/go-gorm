@@ -6,7 +6,7 @@ type Product struct {
 	gorm.Model
 	Code     string
 	Price    uint
-	Producer *Producer
+	Producer *Producer `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type Producer struct {

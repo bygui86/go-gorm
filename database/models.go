@@ -13,6 +13,7 @@ type DbInterface interface {
 	GetProductById(uint) (*model.Product, error)
 	CreateProduct(*model.Product) (*model.Product, error)
 	UpdateProduct(*model.Product) (*model.Product, error)
+	SoftDeleteProduct(uint) error
 	DeleteProduct(uint) error
 }
 

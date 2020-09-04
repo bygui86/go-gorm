@@ -5,19 +5,32 @@ import (
 	"github.com/bygui86/go-gorm/model"
 	"gopkg.in/logex.v1"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func (d *DbInterfaceImpl) GetProducts() ([]*model.Product, error) {
 	logex.Info("Get all products")
 	var products []*model.Product
-	err := d.db.Find(&products).Error
+	err := d.db.Preload(clause.Associations).Find(&products).Error
 	return products, err
 }
 
 func (d *DbInterfaceImpl) GetProductById(productId uint) (*model.Product, error) {
 	logex.Infof("Get product with ID: %d", productId)
 	var product model.Product
-	err := d.db.First(&product, productId).Error
+
+	// without eager loading
+	//err := d.db.First(&product, productId).Error
+
+	// with eager loading of all associations
+	err := d.db.Preload(clause.Associations).First(&product, productId).Error
+
+	// with eager loading of a single association
+	//err := d.db.Preload("Producers").First(&product, productId).Error
+
+	// with eager loading using inner join for a single association
+	//err := d.db.Joins("Producers").First(&product, productId).Error
+
 	return &product, err
 }
 
@@ -45,7 +58,12 @@ func (d *DbInterfaceImpl) UpdateProduct(updatedProduct *model.Product) (*model.P
 	return product, err
 }
 
+func (d *DbInterfaceImpl) SoftDeleteProduct(productId uint) error {
+	logex.Infof("Soft delete product with ID: %d", productId)
+	return d.db.Delete(&model.Product{}, productId).Error
+}
+
 func (d *DbInterfaceImpl) DeleteProduct(productId uint) error {
 	logex.Infof("Delete product with ID: %d", productId)
-	return d.db.Delete(&model.Product{}, productId).Error
+	return d.db.Unscoped().Delete(&model.Product{}, productId).Error
 }

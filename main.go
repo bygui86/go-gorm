@@ -88,7 +88,8 @@ func getProductById(productId uint) {
 	if err != nil {
 		logex.Fatal(err)
 	}
-	logex.Infof("Retrieved product with ID %d: %+v", productId, foundProduct)
+	logex.Infof("Retrieved product with ID %d: code[%s], price[%d], producer[%s]", productId,
+		foundProduct.Code, foundProduct.Price, foundProduct.Producer.Name)
 }
 
 func updateProduct(product *model.Product) {
