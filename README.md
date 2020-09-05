@@ -3,24 +3,6 @@
 
 Sample project to explore gorm Golang library for SQL
 
-## TODO
-
-- [x] simple example
-    - [x] sqlite
-    - [x] mysql
-    - [x] postgres
-- [x] relation example
-    - [x] sqlite
-    - [x] mysql
-    - [x] postgres
-- [x] transaction error handling
-- [x] soft delete / delete
-- [x] constraints
-- [x] preload
-- [ ] expose rest api - `WIP`
-- [ ] postman collection - `WIP`
-- [ ] prometheus metrics - `WIP`
-
 ## Run
 
 ### SQLite sample

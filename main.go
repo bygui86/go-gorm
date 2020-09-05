@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/bygui86/go-gorm/database"
+	"github.com/bygui86/go-gorm/monitoring"
 	"github.com/bygui86/go-gorm/rest"
 	"gopkg.in/logex.v1"
 	"os"
@@ -12,8 +13,8 @@ import (
 )
 
 var (
-	restInterface rest.RestInterface
-	// TODO monitorInterface
+	restInt    rest.RestInterface
+	monitorInt monitoring.MonitorInterface
 )
 
 func main() {
@@ -21,7 +22,9 @@ func main() {
 
 	dbInterface := startDbConnection()
 
-	restInterface = startRestServer(dbInterface)
+	restInt = startRestServer(dbInterface)
+
+	//monitorInt = startMonitoringServer()
 
 	startSysCallChannel()
 
@@ -67,6 +70,17 @@ func startRestServer(dbInterface database.DbInterface) rest.RestInterface {
 	return server
 }
 
+func startMonitoringServer() monitoring.MonitorInterface {
+	logex.Info("Start monitoring")
+	server := monitoring.NewMonitorInterface()
+	logex.Debug("Monitoring server successfully created")
+
+	server.Start()
+	logex.Debug("Monitoring successfully started")
+
+	return server
+}
+
 func startSysCallChannel() {
 	syscallCh := make(chan os.Signal)
 	signal.Notify(syscallCh, syscall.SIGTERM, syscall.SIGINT, os.Interrupt)
@@ -76,11 +90,15 @@ func startSysCallChannel() {
 func shutdownAndWait(timeout int) {
 	logex.Warn(fmt.Sprintf("Termination signal received, timeout %d", timeout))
 
-	if restInterface != nil {
-		err := restInterface.Shutdown(timeout)
+	if restInt != nil {
+		err := restInt.Shutdown(timeout)
 		if err != nil {
 			logex.Errorf("Error during rest interface shutdown: %s", err.Error())
 		}
+	}
+
+	if monitorInt != nil {
+		monitorInt.Shutdown(timeout)
 	}
 
 	time.Sleep(time.Duration(timeout+1) * time.Second)

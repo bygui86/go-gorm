@@ -5,6 +5,7 @@ import (
 	"gopkg.in/logex.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/plugin/prometheus"
 	"strings"
 )
 
@@ -34,7 +35,31 @@ func OpenPostgresConnection(dbName string) (*gorm.DB, error) {
 		}
 	}
 
-	return db, openErr
+	if openErr != nil {
+		return nil, openErr
+	}
+
+	useErr := db.Use(
+		prometheus.New(
+			prometheus.Config{
+				DBName:          dbName, // use `DBName` as metrics label
+				RefreshInterval: 15,     // Refresh metrics interval (default 15 seconds)
+				StartServer:     true,   // start http server to expose metrics
+				// configure http server port, default port 8080
+				// (if you have configured multiple instances, only the first `HTTPServerPort` will be used to start server)
+				HTTPServerPort: 9090,
+				/*
+					user defined metrics implementing
+
+					type MetricsCollector interface {
+						Metrics(*Prometheus) []prometheus.Collector
+					}
+				*/
+			},
+		),
+	)
+
+	return db, useErr
 }
 
 /*

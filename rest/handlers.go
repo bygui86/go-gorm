@@ -40,7 +40,7 @@ func (r *RestInterfaceImpl) getProductById(writer http.ResponseWriter, request *
 	requestStr := "get product by id"
 	logex.Info(requestStr)
 
-	id, paramErr := getProductIdFromRequest(request)
+	id, paramErr := getProductIdFromUrl(request)
 	if paramErr != nil {
 		logex.Errorf(errorMessageFormat, requestStr, "retrieve query param", paramErr.Error())
 		setStatusBadRequest(writer)
@@ -79,7 +79,7 @@ func (r *RestInterfaceImpl) createProduct(writer http.ResponseWriter, request *h
 	logex.Info(requestStr)
 
 	var product *model.Product
-	decErr := json.NewDecoder(request.Body).Decode(product)
+	decErr := json.NewDecoder(request.Body).Decode(&product)
 	if decErr != nil {
 		logex.Errorf(errorMessageFormat, requestStr, errorDecodeRequestMessage, decErr.Error())
 		setStatusBadRequest(writer)
@@ -110,7 +110,7 @@ func (r *RestInterfaceImpl) updateProduct(writer http.ResponseWriter, request *h
 	logex.Info(requestStr)
 
 	var product *model.Product
-	decErr := json.NewDecoder(request.Body).Decode(product)
+	decErr := json.NewDecoder(request.Body).Decode(&product)
 	if decErr != nil {
 		logex.Errorf(errorMessageFormat, requestStr, errorDecodeRequestMessage, decErr.Error())
 		setStatusBadRequest(writer)
@@ -140,7 +140,7 @@ func (r *RestInterfaceImpl) deleteProductById(writer http.ResponseWriter, reques
 	requestStr := "delete product by id"
 	logex.Info(requestStr)
 
-	id, paramErr := getProductIdFromRequest(request)
+	id, paramErr := getProductIdFromUrl(request)
 	if paramErr != nil {
 		logex.Errorf(errorMessageFormat, requestStr, "retrieve query param", paramErr.Error())
 		setStatusBadRequest(writer)

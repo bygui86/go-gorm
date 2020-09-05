@@ -38,32 +38,28 @@ func (r *RestInterfaceImpl) setupRouter() {
 
 	r.router.
 		HandleFunc(rootEndpoint, r.getProducts).
-		Methods(http.MethodGet).
-		Headers(acceptHeaderKey, applicationJsonValue).
-		Headers(contentTypeHeaderKey, applicationJsonValue)
+		Methods(http.MethodGet)
+		//Headers(acceptHeaderKey, applicationJsonValue)
 	r.router.
 		HandleFunc(rootEndpoint+getProductByIdEndpoint, r.getProductById).
-		Methods(http.MethodGet).
-		Headers(acceptHeaderKey, applicationJsonValue).
-		Headers(contentTypeHeaderKey, applicationJsonValue).
-		Queries(productIdKey, productIdValue)
+		Methods(http.MethodGet)
+		//Headers(acceptHeaderKey, applicationJsonValue).
+		//Queries(productIdKey, productIdValue)
 	r.router.
-		HandleFunc(rootEndpoint+getProductByIdEndpoint, r.createProduct).
-		Methods(http.MethodPost).
-		Headers(acceptHeaderKey, applicationJsonValue).
-		Headers(contentTypeHeaderKey, applicationJsonValue).
-		Queries(productIdKey, productIdValue)
+		HandleFunc(rootEndpoint, r.createProduct).
+		Methods(http.MethodPost)
+		//Headers(acceptHeaderKey, applicationJsonValue).
+		//Headers(contentTypeHeaderKey, applicationJsonValue)
 	r.router.
-		HandleFunc(rootEndpoint+getProductByIdEndpoint, r.updateProduct).
-		Methods(http.MethodPut).
-		Headers(acceptHeaderKey, applicationJsonValue).
-		Headers(contentTypeHeaderKey, applicationJsonValue).
-		Queries(productIdKey, productIdValue)
+		HandleFunc(rootEndpoint, r.updateProduct).
+		Methods(http.MethodPut)
+		//Headers(acceptHeaderKey, applicationJsonValue).
+		//Headers(contentTypeHeaderKey, applicationJsonValue)
 	r.router.
 		HandleFunc(rootEndpoint+getProductByIdEndpoint, r.deleteProductById).
-		Methods(http.MethodDelete).
-		Headers(acceptHeaderKey, applicationJsonValue).
-		Queries(productIdKey, productIdValue)
+		Methods(http.MethodDelete)
+	//Headers(acceptHeaderKey, applicationJsonValue).
+	//Queries(productIdKey, productIdValue)
 }
 
 func (r *RestInterfaceImpl) setupHTTPServer() {

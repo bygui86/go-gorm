@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/bygui86/go-gorm/model"
 	"gopkg.in/logex.v1"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -50,7 +49,10 @@ func (d *DbInterfaceImpl) UpdateProduct(updatedProduct *model.Product) (*model.P
 		return updatedProduct, errors.New("product ID not valid")
 	}
 	product := &model.Product{
-		Model: gorm.Model{
+		//Model: gorm.Model{
+		//	ID: updatedProduct.ID,
+		//},
+		GormCommons: model.GormCommons{
 			ID: updatedProduct.ID,
 		},
 	}

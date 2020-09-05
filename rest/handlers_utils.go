@@ -2,7 +2,7 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 
@@ -49,12 +49,11 @@ func returnErrorResponse(writer http.ResponseWriter, request, errorMsg string) {
 	}
 }
 
-func getProductIdFromRequest(request *http.Request) (int, error) {
-	queryParams := request.URL.Query()
-	idValues, idValuesFound := queryParams[productIdKey]
-	idStr := idValues[0]
-	if !idValuesFound || len(idStr) < 1 {
-		return -1, fmt.Errorf("%s query param not found", productIdKey)
+func getProductIdFromUrl(request *http.Request) (int, error) {
+	vars := mux.Vars(request)
+	id, err := strconv.Atoi(vars[productIdKey])
+	if err != nil {
+		return -1, err
 	}
-	return strconv.Atoi(idStr)
+	return id, nil
 }

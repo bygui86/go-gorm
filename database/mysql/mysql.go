@@ -5,6 +5,7 @@ import (
 	"gopkg.in/logex.v1"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/plugin/prometheus"
 	"strings"
 )
 
@@ -35,7 +36,38 @@ func OpenMysqlConnection(dbName string) (*gorm.DB, error) {
 		}
 	}
 
-	return db, openErr
+	if openErr != nil {
+		return nil, openErr
+	}
+
+	useErr := db.Use(
+		prometheus.New(
+			prometheus.Config{
+				DBName:          dbName, // use `DBName` as metrics label
+				RefreshInterval: 15,     // Refresh metrics interval (default 15 seconds)
+				StartServer:     true,   // start http server to expose metrics
+				// configure http server port, default port 8080
+				// (if you have configured multiple instances, only the first `HTTPServerPort` will be used to start server)
+				HTTPServerPort: 9090,
+				MetricsCollector: []prometheus.MetricsCollector{
+					&prometheus.MySQL{
+						//Prefix: "gorm_status_", // Metrics name prefix, default is `gorm_status_`
+						//Interval: 15, // Fetch interval, default use Prometheus's RefreshInterval
+						//VariableNames: []string{"Threads_running"}, // Select variables from SHOW STATUS, if not set, uses all status variables
+					},
+				},
+				/*
+					user defined metrics implementing
+
+					type MetricsCollector interface {
+						Metrics(*Prometheus) []prometheus.Collector
+					}
+				*/
+			},
+		),
+	)
+
+	return db, useErr
 }
 
 /*
