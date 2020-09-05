@@ -17,8 +17,9 @@ Sample project to explore gorm Golang library for SQL
 - [x] soft delete / delete
 - [x] constraints
 - [x] preload
-- [ ] expose rest api
-- [ ] prometheus metrics
+- [ ] expose rest api - `WIP`
+- [ ] postman collection - `WIP`
+- [ ] prometheus metrics - `WIP`
 
 ## Run
 

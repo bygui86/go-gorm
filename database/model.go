@@ -13,8 +13,8 @@ type DbInterface interface {
 	GetProductById(uint) (*model.Product, error)
 	CreateProduct(*model.Product) (*model.Product, error)
 	UpdateProduct(*model.Product) (*model.Product, error)
-	SoftDeleteProduct(uint) error
-	DeleteProduct(uint) error
+	SoftDeleteProductById(uint) error
+	DeleteProductById(uint) error
 }
 
 type DbInterfaceImpl struct {

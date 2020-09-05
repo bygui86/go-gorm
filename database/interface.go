@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func NewDbInterface() (*DbInterfaceImpl, error) {
+func NewDbInterface() (DbInterface, error) {
 	cfg, err := loadConfig()
 	if err != nil {
 		return nil, err

@@ -58,12 +58,12 @@ func (d *DbInterfaceImpl) UpdateProduct(updatedProduct *model.Product) (*model.P
 	return product, err
 }
 
-func (d *DbInterfaceImpl) SoftDeleteProduct(productId uint) error {
+func (d *DbInterfaceImpl) SoftDeleteProductById(productId uint) error {
 	logex.Infof("Soft delete product with ID: %d", productId)
 	return d.db.Delete(&model.Product{}, productId).Error
 }
 
-func (d *DbInterfaceImpl) DeleteProduct(productId uint) error {
+func (d *DbInterfaceImpl) DeleteProductById(productId uint) error {
 	logex.Infof("Delete product with ID: %d", productId)
 	return d.db.Unscoped().Delete(&model.Product{}, productId).Error
 }

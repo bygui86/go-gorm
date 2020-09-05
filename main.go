@@ -1,120 +1,87 @@
 package main
 
 import (
+	"fmt"
 	"github.com/bygui86/go-gorm/database"
-	"github.com/bygui86/go-gorm/model"
+	"github.com/bygui86/go-gorm/rest"
 	"gopkg.in/logex.v1"
-)
-
-const (
-	productCode  = "D42"
-	productPrice = 100
-	producerName = "galaxy inc"
-
-	newCode  = "F42"
-	newPrice = 200
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 var (
-	db *database.DbInterfaceImpl
+	restInterface rest.RestInterface
+	// TODO monitorInterface
 )
 
 func main() {
-	logex.Info("go-gorm start")
+	logex.Info("Start go-gorm")
 
-	db = newDb()
+	dbInterface := startDbConnection()
 
-	openConnection()
+	restInterface = startRestServer(dbInterface)
 
-	initSchema()
+	startSysCallChannel()
 
-	product := createProduct()
-
-	getProductById(product.ID)
-
-	updateProduct(product)
-
-	getProductById(product.ID)
-
-	deleteProduct(product.ID)
-
-	getAllProducts()
-
-	logex.Info("go-gorm completed")
+	shutdownAndWait(3)
 }
 
-func newDb() *database.DbInterfaceImpl {
-	logex.Info("Create new database interface")
-	db, err := database.NewDbInterface()
-	if err != nil {
-		logex.Fatal(err)
+func startDbConnection() database.DbInterface {
+	logex.Info("Create new database connection")
+
+	db, newErr := database.NewDbInterface()
+	if newErr != nil {
+		logex.Fatal(newErr)
 	}
+	logex.Debug("Database interface successfully created")
+
+	openErr := db.OpenConnection()
+	if openErr != nil {
+		logex.Fatal(openErr)
+	}
+	logex.Debug("Database connection successfully opened")
+
+	initErr := db.InitSchema()
+	if initErr != nil {
+		logex.Fatal(initErr)
+	}
+	logex.Debug("Database schema successfully initialized")
+
 	return db
 }
 
-func openConnection() {
-	logex.Info("Open database connection")
-	err := db.OpenConnection()
+func startRestServer(dbInterface database.DbInterface) rest.RestInterface {
+	logex.Info("Start rest server")
+
+	server := rest.NewRestInterface(dbInterface)
+	logex.Debug("rest server successfully created")
+
+	err := server.Start()
 	if err != nil {
 		logex.Fatal(err)
 	}
+	logex.Debug("rest server successfully started")
+
+	return server
 }
 
-func initSchema() {
-	logex.Info("Initialize database schema")
-	err := db.InitSchema()
-	if err != nil {
-		logex.Fatal(err)
-	}
+func startSysCallChannel() {
+	syscallCh := make(chan os.Signal)
+	signal.Notify(syscallCh, syscall.SIGTERM, syscall.SIGINT, os.Interrupt)
+	<-syscallCh
 }
 
-func createProduct() *model.Product {
-	product, err := db.CreateProduct(&model.Product{
-		Code:  productCode,
-		Price: productPrice,
-		Producer: &model.Producer{
-			Name: producerName,
-		},
-	})
-	if err != nil {
-		logex.Fatal(err)
-	}
-	logex.Infof("Product successfully created: %+v", product)
-	return product
-}
+func shutdownAndWait(timeout int) {
+	logex.Warn(fmt.Sprintf("Termination signal received, timeout %d", timeout))
 
-func getProductById(productId uint) {
-	foundProduct, err := db.GetProductById(productId)
-	if err != nil {
-		logex.Fatal(err)
+	if restInterface != nil {
+		err := restInterface.Shutdown(timeout)
+		if err != nil {
+			logex.Errorf("Error during rest interface shutdown: %s", err.Error())
+		}
 	}
-	logex.Infof("Retrieved product with ID %d: code[%s], price[%d], producer[%s]", productId,
-		foundProduct.Code, foundProduct.Price, foundProduct.Producer.Name)
-}
 
-func updateProduct(product *model.Product) {
-	product.Code = newCode
-	product.Price = newPrice
-	var err error
-	product, err = db.UpdateProduct(product)
-	if err != nil {
-		logex.Fatal(err)
-	}
-	logex.Infof("Product successfully updated: %+v", product)
-}
-
-func deleteProduct(productId uint) {
-	err := db.DeleteProduct(productId)
-	if err != nil {
-		logex.Fatal(err)
-	}
-	logex.Infof("Product with ID %d successfully deleted", productId)
-}
-
-func getAllProducts() {
-	products, err := db.GetProducts()
-	if err != nil {
-		logex.Fatal(err)
-	}
-	logex.Infof("Found %d products", len(products))
+	time.Sleep(time.Duration(timeout+1) * time.Second)
 }
